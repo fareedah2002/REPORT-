@@ -1,0 +1,684 @@
+---
+title: "MIND THE GAP"
+subtitle: "Mapping Global Disparities in Youth HIV Knowledge"
+author: "Fareedah Martins"
+date: "26 April 2025"
+format:
+  html:
+    toc: true
+    theme: 
+      - sandstone
+    embed-resources: true
+    code-fold: true
+    page-layout: article
+    title-block-banner: false
+    title-block-style: plain
+    fig-cap-location: top
+    tbl-cap-location: top
+    mainfont: "Inter, system-ui, sans-serif"
+    css: styles.css
+    grid:
+      body-width: 1200px
+      margin-width: 250px
+jupyter: python3
+---
+
+```{python}
+#| label: setup
+#| include: false
+
+import pandas as pd
+import plotly.express as px
+import plotly.graph_objects as go
+import numpy as np
+from plotly.subplots import make_subplots
+from scipy import stats
+
+# Set consistent theme for all plots
+theme_config = {
+    'font_family': 'Inter, system-ui, sans-serif',
+    'background_color': '#ffffff',
+    'grid_color': '#f0f0f0',
+    'title_font_size': 24,
+    'axis_font_size': 12,
+    'tick_font_size': 10,
+    'legend_font_size': 10,
+    'text_color': '#1a1a1a',
+    'axis_color': '#666666'
+}
+
+def apply_theme(fig):
+    fig.update_layout(
+        font_family=theme_config['font_family'],
+        plot_bgcolor=theme_config['background_color'],
+        paper_bgcolor=theme_config['background_color'],
+        title_font_size=theme_config['title_font_size'],
+        title_font_color=theme_config['text_color'],
+        legend_font_size=theme_config['legend_font_size'],
+        legend_bgcolor='rgba(255,255,255,0.8)',
+        legend_borderwidth=0,
+        margin=dict(t=80, r=20, b=40, l=40)
+    )
+    fig.update_xaxes(
+        gridcolor=theme_config['grid_color'],
+        gridwidth=0.5,
+        color=theme_config['axis_color'],
+        tickfont_size=theme_config['tick_font_size']
+    )
+    fig.update_yaxes(
+        gridcolor=theme_config['grid_color'],
+        gridwidth=0.5,
+        color=theme_config['axis_color'],
+        tickfont_size=theme_config['tick_font_size']
+    )
+    return fig
+```
+
+## 1. World Map: HIV Knowledge Disparities
+
+This visualization explores the global distribution of HIV knowledge among youth, highlighting significant regional disparities and their potential correlation with economic development.
+
+```{python}
+#| label: world-map
+#| warning: false
+
+# Read and prepare the data
+df = pd.read_csv("unicef_indicator_1.csv")
+
+# Dictionary mapping country names to ISO codes
+country_to_iso = {
+    'Afghanistan': 'AFG', 'Albania': 'ALB', 'Armenia': 'ARM', 'Azerbaijan': 'AZE',
+    'Bangladesh': 'BGD', 'Benin': 'BEN', 'Bolivia, Plurinational State of': 'BOL',
+    'Burkina Faso': 'BFA', 'Burundi': 'BDI', 'Cambodia': 'KHM', 'Cameroon': 'CMR',
+    'Chad': 'TCD', 'Colombia': 'COL', 'Comoros': 'COM', 'Congo': 'COG',
+    'Congo, the Democratic Republic of the': 'COD', 'Dominican Republic': 'DOM',
+    'Egypt': 'EGY', 'Ethiopia': 'ETH', 'Gabon': 'GAB', 'Gambia': 'GMB',
+    'Ghana': 'GHA', 'Guinea': 'GIN', 'Guyana': 'GUY', 'Haiti': 'HTI',
+    'Honduras': 'HND', 'India': 'IND', 'Indonesia': 'IDN', 'Ivory Coast': 'CIV',
+    'Jordan': 'JOR', 'Kenya': 'KEN', 'Lebanon': 'LBN', 'Lesotho': 'LSO',
+    'Madagascar': 'MDG', 'Malawi': 'MWI', 'Maldives': 'MDV', 'Mali': 'MLI',
+    'Mauritania': 'MRT', 'Morocco': 'MAR', 'Mozambique': 'MOZ', 'Myanmar': 'MMR',
+    'Namibia': 'NAM', 'Nepal': 'NPL', 'Nicaragua': 'NIC', 'Nigeria': 'NGA',
+    'Pakistan': 'PAK', 'Papua New Guinea': 'PNG', 'Peru': 'PER', 'Philippines': 'PHL',
+    'Rwanda': 'RWA', 'Sao Tome and Principe': 'STP', 'Senegal': 'SEN',
+    'Sierra Leone': 'SLE', 'Somalia': 'SOM', 'Swaziland': 'SWZ', 'Tajikistan': 'TJK',
+    'Tanzania, United Republic of': 'TZA', 'Thailand': 'THA', 'Timor-Leste': 'TLS',
+    'Togo': 'TGO', 'Uganda': 'UGA', 'Ukraine': 'UKR', 'Vietnam': 'VNM',
+    'Zambia': 'ZMB', 'Zimbabwe': 'ZWE'
+}
+
+# Get the latest data for each country
+latest_data = df.sort_values('time_period').groupby(['country', 'sex']).last().reset_index()
+
+# Create separate dataframes for female data
+female_data = latest_data[latest_data['sex'] == 'Female'].copy()
+
+# Add ISO codes to the dataframe
+female_data['iso_alpha'] = female_data['country'].map(country_to_iso)
+
+# Create the choropleth map
+fig = go.Figure()
+
+# Add female data choropleth
+fig.add_trace(go.Choropleth(
+    locations=female_data['iso_alpha'],
+    z=female_data['obs_value'],
+    text=female_data['country'],
+    customdata=female_data[['country', 'obs_value', 'time_period']],
+    hovertemplate="<b>%{customdata[0]}</b><br>" +
+                  "HIV Knowledge: %{customdata[1]:.1f}%<br>" +
+                  "Year: %{customdata[2]}<extra></extra>",
+    colorscale=[
+        [0, '#f7fbff'],    # Lightest blue
+        [0.2, '#deebf7'],  # Light blue
+        [0.4, '#9ecae1'],  # Medium blue
+        [0.6, '#4292c6'],  # Blue
+        [0.8, '#2171b5'],  # Dark blue
+        [1, '#084594']     # Darkest blue
+    ],
+    autocolorscale=False,
+    reversescale=False,
+    marker_line_color='white',
+    marker_line_width=0.5,
+    colorbar=dict(
+        title="HIV Knowledge (%)",
+        thickness=15,
+        len=0.35,
+        x=0.85,
+        y=0.5,
+        yanchor='middle',
+        bgcolor='rgba(255,255,255,0.8)',
+        borderwidth=0,
+        outlinewidth=0,
+        tickfont=dict(
+            family=theme_config['font_family'],
+            size=theme_config['tick_font_size'],
+            color=theme_config['axis_color']
+        ),
+        titlefont=dict(
+            family=theme_config['font_family'],
+            size=theme_config['axis_font_size'],
+            color=theme_config['axis_color']
+        ),
+        tickformat='.0f',
+        ticksuffix='%'
+    )
+))
+
+# Add text labels for countries
+for idx, row in female_data.iterrows():
+    fig.add_annotation(
+        x=row['iso_alpha'],
+        y=row['obs_value'],
+        text=row['country'],
+        showarrow=False,
+        font=dict(
+            family=theme_config['font_family'],
+            size=8,
+            color='black'
+        ),
+        bgcolor='rgba(255,255,255,0.7)',
+        bordercolor='rgba(0,0,0,0.1)',
+        borderwidth=1,
+        borderpad=1
+    )
+
+# Update layout with improved map settings
+fig.update_layout(
+    title=dict(
+        text='Global Youth HIV Knowledge Distribution',
+        font=dict(
+            size=theme_config['title_font_size'],
+            family=theme_config['font_family'],
+            color=theme_config['text_color']
+        ),
+        y=0.95,
+        x=0.5,
+        xanchor='center',
+        yanchor='top'
+    ),
+    geo=dict(
+        showframe=True,
+        framecolor='#d3d3d3',
+        showcoastlines=True,
+        coastlinecolor='#d3d3d3',
+        projection_type='miller',
+        projection_scale=1.1,
+        center=dict(lon=0, lat=20),
+        lonaxis=dict(
+            range=[-180, 180],
+            showgrid=True,
+            gridwidth=0.5,
+            gridcolor=theme_config['grid_color']
+        ),
+        lataxis=dict(
+            range=[-60, 90],
+            showgrid=True,
+            gridwidth=0.5,
+            gridcolor=theme_config['grid_color']
+        ),
+        showland=True,
+        landcolor=theme_config['background_color'],
+        showocean=True,
+        oceancolor='#f8f9fa',
+        showlakes=True,
+        lakecolor='#f8f9fa',
+        showcountries=True,
+        countrycolor='#d3d3d3',
+        bgcolor=theme_config['background_color']
+    ),
+    paper_bgcolor=theme_config['background_color'],
+    plot_bgcolor=theme_config['background_color'],
+    margin=dict(r=20, t=80, l=20, b=20),
+    width=1200,
+    height=700,
+    annotations=[
+        dict(
+            x=0.85,
+            y=0.7,
+            xref='paper',
+            yref='paper',
+            showarrow=False,
+            font=dict(
+                size=theme_config['axis_font_size'],
+                family=theme_config['font_family'],
+                color=theme_config['axis_color']
+            ),
+            bgcolor='rgba(255,255,255,0.8)',
+            borderpad=4
+        ),
+        dict(
+            x=0.5,
+            y=-0.1,
+            xref='paper',
+            yref='paper',
+            text='Source: UNICEF Global Database | Latest available data per country',
+            showarrow=False,
+            font=dict(
+                size=10,
+                family=theme_config['font_family'],
+                color='#6B7280'
+            )
+        )
+    ]
+)
+
+fig.show()
+```
+
+::: {.callout-note}
+## Analysis Highlights
+- **Regional Patterns**: Clear disparities between regions, with some areas showing consistently higher knowledge levels
+- **Data Coverage**: Comprehensive representation across multiple regions
+- **Gender Gap**: Significant variations in knowledge levels between males and females across regions
+:::
+
+## 2. Bar Chart: Gender Knowledge Gaps
+
+This visualization examines the most significant gender-based disparities in HIV knowledge across countries, highlighting where targeted interventions may be needed.
+
+```{python}
+#| label: gender-gaps
+#| warning: false
+
+# Get the latest data for each country and gender
+latest_data = df.sort_values('time_period').groupby(['country', 'sex']).last().reset_index()
+
+# Pivot the data to get male and female values in separate columns
+gender_gap = latest_data.pivot(index='country', columns='sex', values='obs_value').reset_index()
+gender_gap.columns.name = None
+gender_gap = gender_gap.rename(columns={'Female': 'female_knowledge', 'Male': 'male_knowledge'})
+
+# Calculate absolute gender gap
+gender_gap['gap'] = abs(gender_gap['female_knowledge'] - gender_gap['male_knowledge'])
+
+# Sort by absolute gap and get top 5 countries
+top_gaps = gender_gap.nlargest(5, 'gap').copy()
+
+# Create the bar chart
+fig = go.Figure()
+
+# Add bars for females
+fig.add_trace(go.Bar(
+    x=top_gaps['country'],
+    y=top_gaps['female_knowledge'],
+    name='Female',
+    marker_color='#FF69B4',
+    text=top_gaps['female_knowledge'].round(1).astype(str) + '%',
+    textposition='auto',
+))
+
+# Add bars for males
+fig.add_trace(go.Bar(
+    x=top_gaps['country'],
+    y=top_gaps['male_knowledge'],
+    name='Male',
+    marker_color='#4169E1',
+    text=top_gaps['male_knowledge'].round(1).astype(str) + '%',
+    textposition='auto',
+))
+
+# Apply theme
+fig = apply_theme(fig)
+
+# Update specific layout settings
+fig.update_layout(
+    title='Top 5 Countries with Largest Gender Gaps in HIV Knowledge',
+    barmode='group',
+    xaxis_title='Country',
+    yaxis_title='HIV Knowledge (%)',
+    showlegend=True,
+    legend=dict(
+        yanchor="top",
+        y=0.99,
+        xanchor="right",
+        x=0.99
+    )
+)
+
+# Add gap values as annotations
+for idx, row in top_gaps.iterrows():
+    gap_value = abs(row['female_knowledge'] - row['male_knowledge'])
+    higher_value = max(row['female_knowledge'], row['male_knowledge'])
+    fig.add_annotation(
+        x=row['country'],
+        y=higher_value + 2,
+        text=f'Gap: {gap_value:.1f}%',
+        showarrow=False,
+        font=dict(size=10, color='#4B5563')
+    )
+
+fig.show()
+```
+
+::: {.callout-note}
+## Analysis Highlights
+- **Largest Disparities**: The visualization reveals significant gender gaps, with some countries showing differences of over 10 percentage points
+- **Direction of Gap**: Some countries show higher female knowledge, while others show higher male knowledge
+- **Regional Patterns**: The gaps appear to correlate with regional and cultural factors
+- **Policy Implications**: These disparities suggest the need for gender-specific interventions in HIV education
+:::
+
+## 3. Scatterplot with Regression: Economic Development and HIV Knowledge
+
+```{python}
+#| label: economic-development
+#| warning: false
+
+# Read the data
+hiv_data = pd.read_csv("unicef_indicator_1.csv")
+metadata = pd.read_csv("metadata.csv")
+
+# Get latest HIV knowledge data for each country
+latest_hiv = (hiv_data.sort_values('time_period')
+              .groupby('country')['obs_value']
+              .last()
+              .reset_index())
+
+# Merge with metadata
+merged_data = pd.merge(latest_hiv, metadata, on='country', how='inner')
+
+# Create scatter plot
+fig = px.scatter(merged_data, 
+                x='gdp_per_capita',
+                y='obs_value',
+                size='population',
+                size_max=40,
+                hover_name='country',
+                hover_data={
+                    'gdp_per_capita': ':,.0f',
+                    'obs_value': ':.1f',
+                    'population': ':,.0f',
+                    'country': False
+                },
+                labels={
+                    'gdp_per_capita': 'GDP per Capita (USD)',
+                    'obs_value': 'HIV Knowledge (%)',
+                    'population': 'Population'
+                })
+
+# Calculate and add trendline
+z = np.polyfit(merged_data['gdp_per_capita'], merged_data['obs_value'], 1)
+p = np.poly1d(z)
+r2 = np.corrcoef(merged_data['gdp_per_capita'], merged_data['obs_value'])[0,1]**2
+
+x_range = np.linspace(merged_data['gdp_per_capita'].min(), merged_data['gdp_per_capita'].max(), 100)
+fig.add_trace(
+    go.Scatter(
+        x=x_range,
+        y=p(x_range),
+        mode='lines',
+        name=f'Trend (R² = {r2:.2f})',
+        line=dict(color='rgba(0,0,0,0.5)', dash='dash', width=2)
+    )
+)
+
+# Apply theme
+fig = apply_theme(fig)
+
+# Update specific layout settings
+fig.update_layout(
+    title='Economic Development and HIV Knowledge by Country',
+    xaxis_type='log',
+    showlegend=False,
+    height=600
+)
+
+fig.show()
+```
+
+::: {.callout-note}
+## Key Findings
+- **Country Performance**: Each bubble represents a country, with size indicating population
+- **Economic Relationship**: The trend line shows the general relationship between GDP and HIV knowledge
+- **Outliers**: Some countries achieve higher or lower knowledge levels than expected for their GDP
+- **Population Impact**: Larger bubbles represent countries with larger populations
+:::
+
+## 4. Regional Trend Lines: Progress Comparison
+
+```{python}
+#| label: regional-trends
+#| warning: false
+
+# Define regions
+african_countries = [
+    'Kenya', 'Rwanda', 'Uganda', 'Tanzania, United Republic of', 
+    'Zimbabwe', 'Namibia', 'Zambia', 'Malawi', 'Ethiopia',
+    'Nigeria', 'Ghana', 'Senegal', 'Mali', 'Burkina Faso',
+    'Mozambique', 'Congo', 'Cameroon', 'Chad', 'Benin',
+    'Ivory Coast', 'Madagascar', 'Sierra Leone'
+]
+
+asian_countries = [
+    'India', 'Bangladesh', 'Nepal', 'Pakistan', 'Afghanistan',
+    'Indonesia', 'Philippines', 'Vietnam', 'Cambodia', 'Thailand',
+    'Myanmar', 'Timor-Leste', 'Maldives', 'Jordan', 'Lebanon'
+]
+
+# Create region mapping
+region_mapping = {
+    country: 'Africa' for country in african_countries
+}
+region_mapping.update({
+    country: 'Asia' for country in asian_countries
+})
+
+# Prepare data
+df['year'] = pd.to_numeric(df['time_period'].str.extract(r'(\d{4})')[0])
+df['region'] = df['country'].map(region_mapping)
+
+# Calculate regional averages
+regional_trends = df[df['region'].notna()].groupby(['region', 'year', 'sex'])['obs_value'].mean().reset_index()
+
+# Create figure
+fig = go.Figure()
+
+# Color mapping
+colors = {
+    'Africa': {'Female': '#FF69B4', 'Male': '#FF1493'},
+    'Asia': {'Female': '#4169E1', 'Male': '#000080'}
+}
+
+# Add lines for each region and gender
+for region in ['Africa', 'Asia']:
+    for gender in ['Female', 'Male']:
+        data = regional_trends[
+            (regional_trends['region'] == region) & 
+            (regional_trends['sex'] == gender)
+        ]
+        
+        fig.add_trace(go.Scatter(
+            x=data['year'],
+            y=data['obs_value'],
+            name=f'{region} - {gender}',
+            mode='lines+markers',
+            line=dict(
+                width=2,
+                color=colors[region][gender]
+            ),
+            marker=dict(
+                size=6,
+                line=dict(width=1, color='white')
+            ),
+            hovertemplate=(
+                "<b>%{x}</b><br>" +
+                "HIV Knowledge: %{y:.1f}%<br>" +
+                f"{region} - {gender}<extra></extra>"
+            )
+        ))
+
+# Apply theme
+fig = apply_theme(fig)
+
+# Update specific layout settings
+fig.update_layout(
+    title='Regional HIV Knowledge Trends: Africa vs Asia',
+    xaxis_title='Year',
+    yaxis_title='HIV Knowledge (%)',
+    yaxis_range=[0, 70],
+    legend=dict(
+        yanchor="top",
+        y=0.99,
+        xanchor="right",
+        x=0.99
+    ),
+    height=500
+)
+
+fig.show()
+```
+
+::: {.callout-note}
+## Analysis Highlights
+- **Regional Disparities**: Africa shows consistently higher HIV knowledge levels compared to Asia
+- **Gender Dynamics**: Both regions exhibit gender gaps, with varying magnitudes
+- **Progress Patterns**: 
+  - Africa demonstrates steady improvement with reduced gender disparity
+  - Asia shows gradual progress with ongoing gender differences
+- **Rate of Change**: Progress rates vary between regions and genders
+:::
+
+## 5. Age-Based Analysis: Youth HIV Knowledge Distribution
+
+```{python}
+#| label: age-analysis
+#| warning: false
+
+# Load and prepare data
+df = pd.read_csv("unicef_indicator_1.csv")
+
+# Define regions for grouping
+regions = {
+    'Africa': ['Kenya', 'Rwanda', 'Uganda', 'Tanzania, United Republic of', 
+               'Zimbabwe', 'Namibia', 'Zambia', 'Malawi', 'Ethiopia',
+               'Nigeria', 'Ghana', 'Senegal', 'Mali', 'Burkina Faso',
+               'Mozambique', 'Congo', 'Cameroon', 'Chad', 'Benin',
+               'Ivory Coast', 'Madagascar', 'Sierra Leone'],
+    'Asia': ['India', 'Bangladesh', 'Nepal', 'Pakistan', 'Afghanistan',
+             'Indonesia', 'Philippines', 'Vietnam', 'Cambodia', 'Thailand',
+             'Myanmar', 'Timor-Leste', 'Maldives', 'Jordan', 'Lebanon']
+}
+
+# Create region mapping
+region_mapping = {}
+for region, countries in regions.items():
+    for country in countries:
+        region_mapping[country] = region
+
+# Add region column
+df['region'] = df['country'].map(region_mapping)
+
+# Calculate average knowledge by region and sex
+regional_data = (df[df['region'].notna()]
+                .groupby(['region', 'sex'])['obs_value']
+                .mean()
+                .reset_index())
+
+# Create the visualization
+fig = go.Figure()
+
+# Color scheme for regions
+colors = {
+    'Africa': {'Female': '#2171b5', 'Male': '#6baed6'},  # Blue shades
+    'Asia': {'Female': '#f768a1', 'Male': '#fbb4b9'}     # Pink shades
+}
+
+# Add bars for each region and gender
+for region in ['Africa', 'Asia']:
+    region_data = regional_data[regional_data['region'] == region]
+    
+    # Female data
+    female_data = region_data[region_data['sex'] == 'Female']
+    fig.add_trace(go.Bar(
+        name=f'{region} (Female)',
+        x=[region],
+        y=female_data['obs_value'],
+        marker_color=colors[region]['Female'],
+        text=female_data['obs_value'].round(1).astype(str) + '%',
+        textposition='auto',
+        width=0.35,
+        offset=-0.2
+    ))
+    
+    # Male data
+    male_data = region_data[region_data['sex'] == 'Male']
+    fig.add_trace(go.Bar(
+        name=f'{region} (Male)',
+        x=[region],
+        y=male_data['obs_value'],
+        marker_color=colors[region]['Male'],
+        text=male_data['obs_value'].round(1).astype(str) + '%',
+        textposition='auto',
+        width=0.35,
+        offset=0.2
+    ))
+
+# Update layout
+fig.update_layout(
+    title=dict(
+        text='Africa & Asia: HIV Knowledge by Gender',
+        font=dict(size=20, family='Inter, system-ui, sans-serif')
+    ),
+    xaxis_title='Region',
+    yaxis_title='HIV Knowledge (%)',
+    barmode='group',
+    plot_bgcolor='white',
+    height=500,
+    showlegend=True,
+    legend=dict(
+        yanchor="top",
+        y=0.99,
+        xanchor="right",
+        x=0.99,
+        bgcolor='rgba(255,255,255,0.8)',
+        bordercolor='rgba(0,0,0,0.1)',
+        borderwidth=1
+    ),
+    yaxis=dict(
+        range=[0, 70],
+        gridcolor='rgba(0,0,0,0.1)',
+        ticksuffix='%'
+    ),
+    xaxis=dict(
+        tickangle=0,
+        gridcolor='rgba(0,0,0,0.1)'
+    )
+)
+
+# Add annotations for key findings
+fig.add_annotation(
+    x=0.5,
+    y=65,
+    text="Africa shows consistently higher HIV knowledge levels",
+    showarrow=False,
+    font=dict(size=12),
+    bgcolor='rgba(255,255,255,0.8)',
+    bordercolor='rgba(0,0,0,0.1)',
+    borderwidth=1,
+    borderpad=4
+)
+
+fig.show()
+```
+
+::: {.callout-note}
+## Key Insights
+- **Regional Comparison**: Africa demonstrates higher HIV knowledge levels compared to Asia
+- **Gender Analysis**: Both regions show gender disparities, with varying patterns between males and females
+- **Knowledge Gap**: The difference between regions highlights the need for targeted interventions in Asia
+- **Gender Dynamics**: The gender gap varies between regions, suggesting different cultural and social factors at play
+:::
+
+## Looking Ahead: Bridging the Gap
+
+Our analysis points to three key recommendations:
+
+1. **Target the Gaps**: Focus resources on regions showing persistently low knowledge levels
+2. **Learn from Leaders**: Adapt successful strategies from top-performing countries
+3. **Integrate Solutions**: Consider the interconnected nature of health education and outcomes
+
+::: {.callout-note}
+## Data Sources
+This analysis draws from UNICEF's global database, focusing on youth HIV knowledge indicators and childhood health metrics.
+:::
