@@ -498,14 +498,11 @@ for region in ['Africa', 'Asia']:
                 color=colors[region][gender]
             ),
             marker=dict(
-                size=6,
-                line=dict(width=1, color='white')
+                size=10,
+                line=dict(width=2, color='white'),
+                symbol='circle'
             ),
-            hovertemplate=(
-                "<b>%{x}</b><br>" +
-                "HIV Knowledge: %{y:.1f}%<br>" +
-                f"{region} - {gender}<extra></extra>"
-            )
+            hovertemplate="<b>" + gender + "</b><br>Year: %{x}<br>Knowledge: %{y:.1f}%<extra></extra>"
         ))
 
 # Apply theme
