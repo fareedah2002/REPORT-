@@ -502,11 +502,10 @@ for region in ['Africa', 'Asia']:
                 line=dict(width=2, color='white'),
                 symbol='circle'
             ),
-            hovertemplate="<b>%{customdata}</b><br>Year: %{x}<br>Knowledge: %{y:.1f}%<extra></extra>",
-            customdata=[gender for _ in range(len(data))]
+            hovertemplate=f"{gender}<br>Year: %{{x}}<br>Knowledge: %{{y:.1f}}%<extra></extra>"
         ))
 
-# Add policy events with improved positioning
+# Define policy events with improved positioning
 
 # Apply theme
 fig = apply_theme(fig)
