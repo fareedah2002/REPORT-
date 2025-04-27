@@ -6,9 +6,7 @@ date: "26 April 2025"
 format:
   html:
     toc: true
-    toc-location: left
-    toc-title: "Contents"
-    theme: sandstone
+    theme: none
     embed-resources: true
     code-fold: true
     page-layout: article
@@ -68,32 +66,17 @@ format:
         .toc-actions {
           display: none;
         }
-        /* Sticky sidebar ToC */
-        .sidebar, .quarto-sidebar, nav#TOC, .toc-sidebar {
-          position: sticky !important;
-          top: 2rem !important;
-          max-height: 90vh;
-          overflow-y: auto;
-          background: #f8f9fa;
+        /* Custom code block styling */
+        pre, .cell-output pre, .cell-output code, .cell-output .sourceCode, .cell-output .code {
+          background: #f4f6fa !important;
+          color: #222;
           border-radius: 8px;
-          padding: 1.5rem 1rem;
-          box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+          padding: 1em;
+          font-size: 1em;
+          overflow-x: auto;
         }
-        .quarto-sidebar {
-          min-width: 260px;
-        }
-        main {
-          margin-left: 280px !important;
-        }
-        @media (max-width: 900px) {
-          .sidebar, .quarto-sidebar, nav#TOC, .toc-sidebar {
-            position: static !important;
-            max-height: none;
-            margin-bottom: 2rem;
-          }
-          main {
-            margin-left: 0 !important;
-          }
+        details > summary {
+          cursor: pointer;
         }
         </style>
 jupyter: python3
@@ -430,7 +413,9 @@ fig.update_layout(
         yanchor="top",
         y=0.99,
         xanchor="right",
-        x=0.99
+        bgcolor='rgba(255,255,255,0.8)',
+        bordercolor='rgba(0,0,0,0.1)',
+        borderwidth=1
     )
 )
 
@@ -618,7 +603,9 @@ fig.update_layout(
         yanchor="top",
         y=0.99,
         xanchor="right",
-        x=0.99
+        bgcolor='rgba(255,255,255,0.8)',
+        bordercolor='rgba(0,0,0,0.1)',
+        borderwidth=1
     ),
     height=500
 )
@@ -727,7 +714,6 @@ fig.update_layout(
         yanchor="top",
         y=0.99,
         xanchor="right",
-        x=0.99,
         bgcolor='rgba(255,255,255,0.8)',
         bordercolor='rgba(0,0,0,0.1)',
         borderwidth=1
