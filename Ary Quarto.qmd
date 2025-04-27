@@ -502,7 +502,8 @@ for region in ['Africa', 'Asia']:
                 line=dict(width=2, color='white'),
                 symbol='circle'
             ),
-            hovertemplate="<b>" + gender + "</b><br>Year: %{x}<br>Knowledge: %{y:.1f}%<extra></extra>"
+            hovertemplate="%{customdata}<br>Year: %{x}<br>Knowledge: %{y:.1f}%<extra></extra>",
+            customdata=[gender] * len(data)
         ))
 
 # Apply theme
