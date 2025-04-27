@@ -6,20 +6,56 @@ date: "26 April 2025"
 format:
   html:
     toc: true
-    theme: 
-      - sandstone
+    theme: cosmo
     embed-resources: true
     code-fold: true
     page-layout: article
-    title-block-banner: false
-    title-block-style: plain
+    title-block-banner: true
+    title-block-style: default
     fig-cap-location: top
     tbl-cap-location: top
     mainfont: "Inter, system-ui, sans-serif"
-    css: styles.css
+    fontsize: 1.1em
     grid:
       body-width: 1200px
       margin-width: 250px
+    include-in-header:
+      text: |
+        <style>
+        body {
+          font-family: 'Inter', system-ui, -apple-system, sans-serif;
+          line-height: 1.6;
+          max-width: 1200px;
+          margin: 0 auto;
+          padding: 2rem;
+          background-color: #f8f9fa;
+        }
+        .title {
+          font-size: 2.5rem;
+          font-weight: 700;
+          text-align: center;
+          margin-bottom: 0.5rem;
+        }
+        .subtitle {
+          font-size: 1.5rem;
+          color: #4a5568;
+          text-align: center;
+          margin-bottom: 2rem;
+        }
+        .quarto-title-block {
+          background: linear-gradient(to right, #4299e1, #667eea);
+          padding: 2rem;
+          margin-bottom: 2rem;
+          color: white;
+        }
+        .cell-output {
+          margin: 1rem 0;
+          padding: 1rem;
+          background-color: white;
+          border-radius: 0.5rem;
+          box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        }
+        </style>
 jupyter: python3
 ---
 
@@ -502,10 +538,10 @@ for region in ['Africa', 'Asia']:
                 line=dict(width=2, color='white'),
                 symbol='circle'
             ),
-            hovertemplate=f"{gender}<br>Year: %{{x}}<br>Knowledge: %{{y:.1f}}%<extra></extra>"
+            hovertemplate="Gender: " + gender + "<br>Year: %{x}<br>Knowledge: %{y:.1f}%<extra></extra>"
         ))
 
-# Define policy events with improved positioning
+# Add policy events with improved positioning
 
 # Apply theme
 fig = apply_theme(fig)
