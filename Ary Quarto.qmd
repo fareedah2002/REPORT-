@@ -1,15 +1,15 @@
 ---
-title: "MIND THE GAP"
+title: "UNICEF Data Analysis for DCU"
 subtitle: "Mapping Global Disparities in Youth HIV Knowledge"
 author: "Fareedah Martins"
 date: "26 April 2025"
 format:
   html:
     toc: true
-    theme: none
+    toc-location: left
+    theme: cosmo
     embed-resources: true
     code-fold: true
-    page-layout: article
     title-block-banner: false
     include-in-header:
       text: |
@@ -18,11 +18,14 @@ format:
         body {
           font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
           line-height: 1.5;
-          max-width: 900px;
-          margin: 0 auto;
-          padding: 0.7rem 1rem;
+          max-width: 1500px;
+          margin: 0 0 0 220px;
+          padding: 0.7rem 0.2rem;
           background-color: #ffffff;
           color: #2d3436;
+        }
+        .title, .subtitle, .author, .date, h1, h2, h3, h4, h5, h6, p, ul, ol, .callout, .callout-note, #TOC {
+          text-align: left !important;
         }
         .title {
           font-size: 2.2rem;
@@ -41,9 +44,14 @@ format:
           color: #2d3436;
           margin: 0.5rem 0;
         }
-        h1, h2, h3 {
+        h1, h2, h3, h4, h5, h6 {
           color: #2d3436;
           font-weight: 600;
+          margin-top: 2.2rem;
+          margin-bottom: 1.1rem;
+        }
+        section {
+          margin-bottom: 2.2rem;
         }
         .cell-output {
           margin: 2rem 0;
@@ -53,16 +61,29 @@ format:
           border-top: 1px solid #e0e0e0;
           padding-top: 1rem;
         }
-        .callout {
-          margin: 1rem 0;
-          padding: 1rem;
+        .callout, .callout-note {
+          margin: 0.5rem 0 1.2rem 0;
+          padding: 0.7rem 1rem;
           background-color: #f8f9fa;
           border: none;
+          border-radius: 6px;
+        }
+        .callout strong, .callout-note strong {
+          color: #2d3436;
+        }
+        .callout-title, .callout-note .callout-title, .callout-note strong, .callout strong {
+          text-align: left !important;
+          margin-left: 0 !important;
+          padding-left: 0 !important;
+          display: block;
         }
         #toc-title {
           font-size: 1.2rem;
           color: #2d3436;
           font-weight: 600;
+        }
+        #TOC {
+          margin-bottom: 2.2rem;
         }
         .toc-actions {
           display: none;
@@ -79,9 +100,28 @@ format:
         details > summary {
           cursor: pointer;
         }
+        .sidebar, .quarto-sidebar {
+          left: 0;
+          width: 260px;
+          position: fixed;
+          top: 0;
+          height: 100%;
+          background: #fff;
+          z-index: 1000;
+        }
+        .cell-output, .cell-output .js-plotly-plot, .cell-output .plotly-graph-div {
+          max-width: 100% !important;
+          overflow-x: auto !important;
+        }
         </style>
 jupyter: python3
 ---
+
+::: {.callout-note}
+**Tableau Dashboard**
+
+This is my Tableau dashboard I did previously. [View the interactive dashboard here.](https://public.tableau.com/app/profile/ary.martins/viz/Book1_17423958044360/Dashboard1)
+:::
 
 ```{python}
 #| label: setup
@@ -158,7 +198,7 @@ def apply_theme(fig):
 
 ## 1. World Map: HIV Knowledge Disparities
 
-This visualization explores the global distribution of HIV knowledge among youth, highlighting significant regional disparities and their potential correlation with economic development.
+Step into the global landscape of youth HIV knowledge. This map invites us to travel across continents, revealing not just numbers, but **stories of awareness, progress, and persistent gaps**. As we move from region to region, we see how some countries have become **beacons of knowledge**, while others still face **significant challenges**. The colors on this map are more than data—they are a **call to action**, highlighting where the world is succeeding and where it must do more.
 
 ```{python}
 #| label: world-map
@@ -207,29 +247,29 @@ fig.add_trace(go.Choropleth(
     z=female_data['obs_value'],
     text=female_data['country'],
     customdata=female_data[['country', 'obs_value', 'time_period']],
-    hovertemplate="<b>%{customdata[0]}</b><br>" +
-                  "HIV Knowledge: %{customdata[1]:.1f}%<br>" +
-                  "Year: %{customdata[2]}<extra></extra>",
+    hovertemplate="<b>%{customdata[0]}</b><br>HIV Knowledge: %{customdata[1]:.1f}%<br>Year: %{customdata[2]}<extra></extra>",
     colorscale=[
-        [0, '#f7fbff'],    # Lightest blue
-        [0.2, '#deebf7'],  # Light blue
-        [0.4, '#9ecae1'],  # Medium blue
-        [0.6, '#4292c6'],  # Blue
-        [0.8, '#2171b5'],  # Dark blue
-        [1, '#084594']     # Darkest blue
+        [0, '#fde0ef'],
+        [0.2, '#fa9fb5'],
+        [0.4, '#f768a1'],
+        [0.6, '#c51b8a'],
+        [0.8, '#7a0177'],
+        [1, '#49006a']
     ],
     autocolorscale=False,
     reversescale=False,
-    marker_line_color='white',
-    marker_line_width=0.5,
+    marker_line_color='#e0e0e0',
+    marker_line_width=0.7,
     colorbar=dict(
         title="HIV Knowledge (%)",
-        thickness=15,
-        len=0.35,
-        x=0.85,
-        y=0.5,
-        yanchor='middle',
-        bgcolor='rgba(255,255,255,0.8)',
+        thickness=14,
+        len=0.4,
+        x=0.5,
+        y=0.02,
+        xanchor='center',
+        yanchor='bottom',
+        bgcolor='rgba(255,255,255,0.5)',
+        orientation='h',
         borderwidth=0,
         outlinewidth=0,
         tickfont=dict(
@@ -247,24 +287,6 @@ fig.add_trace(go.Choropleth(
     )
 ))
 
-# Add text labels for countries
-for idx, row in female_data.iterrows():
-    fig.add_annotation(
-        x=row['iso_alpha'],
-        y=row['obs_value'],
-        text=row['country'],
-        showarrow=False,
-        font=dict(
-            family=theme_config['font_family'],
-            size=8,
-            color='black'
-        ),
-        bgcolor='rgba(255,255,255,0.7)',
-        bordercolor='rgba(0,0,0,0.1)',
-        borderwidth=1,
-        borderpad=1
-    )
-
 # Update layout with improved map settings
 fig.update_layout(
     title=dict(
@@ -280,55 +302,36 @@ fig.update_layout(
         yanchor='top'
     ),
     geo=dict(
-        showframe=True,
-        framecolor='#d3d3d3',
+        showframe=False,
         showcoastlines=True,
-        coastlinecolor='#d3d3d3',
+        coastlinecolor='#b0b0b0',
         projection_type='miller',
         projection_scale=1.1,
         center=dict(lon=0, lat=20),
         lonaxis=dict(
             range=[-180, 180],
-            showgrid=True,
-            gridwidth=0.5,
-            gridcolor=theme_config['grid_color']
+            showgrid=False
         ),
         lataxis=dict(
             range=[-60, 90],
-            showgrid=True,
-            gridwidth=0.5,
-            gridcolor=theme_config['grid_color']
+            showgrid=False
         ),
         showland=True,
-        landcolor=theme_config['background_color'],
+        landcolor='#f8f9fa',
         showocean=True,
-        oceancolor='#f8f9fa',
+        oceancolor='#f4f6fa',
         showlakes=True,
-        lakecolor='#f8f9fa',
+        lakecolor='#f4f6fa',
         showcountries=True,
-        countrycolor='#d3d3d3',
-        bgcolor=theme_config['background_color']
+        countrycolor='#e0e0e0',
+        bgcolor='#ffffff'
     ),
-    paper_bgcolor=theme_config['background_color'],
-    plot_bgcolor=theme_config['background_color'],
-    margin=dict(r=20, t=80, l=20, b=20),
-    width=1200,
-    height=700,
+    paper_bgcolor='#ffffff',
+    plot_bgcolor='#ffffff',
+    autosize=True,
+    height=520,
+    margin=dict(r=10, t=60, l=10, b=20),
     annotations=[
-        dict(
-            x=0.85,
-            y=0.7,
-            xref='paper',
-            yref='paper',
-            showarrow=False,
-            font=dict(
-                size=theme_config['axis_font_size'],
-                family=theme_config['font_family'],
-                color=theme_config['axis_color']
-            ),
-            bgcolor='rgba(255,255,255,0.8)',
-            borderpad=4
-        ),
         dict(
             x=0.5,
             y=-0.1,
@@ -348,16 +351,9 @@ fig.update_layout(
 fig.show()
 ```
 
-::: {.callout-note}
-## Analysis Highlights
-- **Regional Patterns**: Clear disparities between regions, with some areas showing consistently higher knowledge levels
-- **Data Coverage**: Comprehensive representation across multiple regions
-- **Gender Gap**: Significant variations in knowledge levels between males and females across regions
-:::
-
 ## 2. Bar Chart: Gender Knowledge Gaps
 
-This visualization examines the most significant gender-based disparities in HIV knowledge across countries, highlighting where targeted interventions may be needed.
+Let's zoom in on the countries where the **gender gap** in HIV knowledge is most pronounced. This chart introduces us to the places where boys and girls are learning **very different lessons** about HIV. Each bar is a story of **opportunity or missed connection**, and together, they reveal where **targeted interventions** could make the biggest difference.
 
 ```{python}
 #| label: gender-gaps
@@ -435,15 +431,9 @@ for idx, row in top_gaps.iterrows():
 fig.show()
 ```
 
-::: {.callout-note}
-## Analysis Highlights
-- **Largest Disparities**: The visualization reveals significant gender gaps, with some countries showing differences of over 10 percentage points
-- **Direction of Gap**: Some countries show higher female knowledge, while others show higher male knowledge
-- **Regional Patterns**: The gaps appear to correlate with regional and cultural factors
-- **Policy Implications**: These disparities suggest the need for gender-specific interventions in HIV education
-:::
-
 ## 3. Scatterplot with Regression: Economic Development and HIV Knowledge
+
+Now, let's explore the **intersection of wealth and awareness**. This scatterplot tells the story of how **economic development and HIV knowledge are intertwined**. Each bubble is a country, and its position reveals whether **prosperity translates into better understanding**—or if some nations are **defying expectations**.
 
 ```{python}
 #| label: economic-development
@@ -479,7 +469,8 @@ fig = px.scatter(merged_data,
                     'gdp_per_capita': 'GDP per Capita (USD)',
                     'obs_value': 'HIV Knowledge (%)',
                     'population': 'Population'
-                })
+                },
+                color_discrete_sequence=['#f768a1'])
 
 # Calculate and add trendline
 z = np.polyfit(merged_data['gdp_per_capita'], merged_data['obs_value'], 1)
@@ -493,7 +484,7 @@ fig.add_trace(
         y=p(x_range),
         mode='lines',
         name=f'Trend (R² = {r2:.2f})',
-        line=dict(color='rgba(0,0,0,0.5)', dash='dash', width=2)
+        line=dict(color='#c51b8a', dash='dash', width=2)
     )
 )
 
@@ -511,15 +502,9 @@ fig.update_layout(
 fig.show()
 ```
 
-::: {.callout-note}
-## Key Findings
-- **Country Performance**: Each bubble represents a country, with size indicating population
-- **Economic Relationship**: The trend line shows the general relationship between GDP and HIV knowledge
-- **Outliers**: Some countries achieve higher or lower knowledge levels than expected for their GDP
-- **Population Impact**: Larger bubbles represent countries with larger populations
-:::
-
 ## 4. Regional Trend Lines: Progress Comparison
+
+Let's follow the **evolving stories of Africa and Asia** as they strive to improve youth HIV knowledge. These lines are more than data—they are the **footprints of policy, education, and social change over time**. Watch as the regions move forward, sometimes together, sometimes apart, and consider what **drives their journeys**.
 
 ```{python}
 #| label: regional-trends
@@ -614,17 +599,9 @@ fig.update_layout(
 fig.show()
 ```
 
-::: {.callout-note}
-## Analysis Highlights
-- **Regional Disparities**: Africa shows consistently higher HIV knowledge levels compared to Asia
-- **Gender Dynamics**: Both regions exhibit gender gaps, with varying magnitudes
-- **Progress Patterns**: 
-  - Africa demonstrates steady improvement with reduced gender disparity
-  - Asia shows gradual progress with ongoing gender differences
-- **Rate of Change**: Progress rates vary between regions and genders
-:::
-
 ## 5. Age-Based Analysis: Youth HIV Knowledge Distribution
+
+Finally, we look at how **knowledge is passed from one generation to the next**. This chart is a snapshot of **learning across ages, regions, and genders**. It asks us: Are we **reaching the youngest**, or **leaving them behind**? Are boys and girls **learning together, or apart**? The answers shape the **future of HIV prevention**.
 
 ```{python}
 #| label: age-analysis
@@ -746,14 +723,6 @@ fig.add_annotation(
 fig.show()
 ```
 
-::: {.callout-note}
-## Key Insights
-- **Regional Comparison**: Africa demonstrates higher HIV knowledge levels compared to Asia
-- **Gender Analysis**: Both regions show gender disparities, with varying patterns between males and females
-- **Knowledge Gap**: The difference between regions highlights the need for targeted interventions in Asia
-- **Gender Dynamics**: The gender gap varies between regions, suggesting different cultural and social factors at play
-:::
-
 ## Looking Ahead: Bridging the Gap
 
 Our analysis points to three key recommendations:
@@ -761,8 +730,3 @@ Our analysis points to three key recommendations:
 1. **Target the Gaps**: Focus resources on regions showing persistently low knowledge levels
 2. **Learn from Leaders**: Adapt successful strategies from top-performing countries
 3. **Integrate Solutions**: Consider the interconnected nature of health education and outcomes
-
-::: {.callout-note}
-## Data Sources
-This analysis draws from UNICEF's global database, focusing on youth HIV knowledge indicators and childhood health metrics.
-:::
